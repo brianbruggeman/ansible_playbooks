@@ -1,0 +1,86 @@
+- name: Installing Nagios
+  hosts: all
+  gather_facts: yes
+
+  vars:
+    - nagios_version: "{{ ansible_env.TMUX_VERSION | default('4.1.1') }}"
+
+  tasks:
+    - name: Prepare system
+      sudo: true
+      apt: "pkg={{item}} state=installed update_cache=true"
+      with_items:
+        - apache2
+        - apache2-utils
+        - apt-file
+        - build-essential
+        - checkinstall
+        - curl
+        - daemon
+        - heirloom-mailx
+        - libapache2-mod-php5
+        - libcgi-pm-perl
+        - libgd-gd2-perl
+        - libgd2-xpm-dev
+        - libmysqlclient15-dev
+        - libnet-snmp-perl
+        - libperl-dev
+        - libpq5
+        - libradius1
+        - librrds-perl
+        - libsensors4
+        - libsnmp-base
+        - libssl-dev
+        - libtalloc2
+        - libtdb1
+        - libwbclient0
+        - mrtg
+        - samba-common
+        - samba-common-bin
+        - sendmail
+        - sendmail-bin
+        - smbclient
+        - snmp
+        - unzip
+        - wget
+        - whois
+        - zip
+
+    - name: Create user
+      command: "{{item}}"
+      sudo: true
+      with_items:
+        - addgroup --system nagios
+        - addgroup --system nagioscmd
+        - adduser --home /usr/local/nagios --shell /bin/true --ingroup nagioscmd --system nagios
+        - usermod -G nagioscmd www-data
+
+    - name: Download nagios
+      command: "{{item}}"
+      sudo: true
+      with_items:
+        - "wget http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-{{ nagios_version }}.tar.gz"
+        - "rm -Rf nagios-{{ nagios_version }}"
+        - "tar xvzf nagios-{{ nagios_version }}.tar.gz"
+
+    - name: Build nagios
+      command: "{{item}} chdir=nagios-{{ nagios_version }}"
+      sudo: true
+      with_items:
+        - ./configure --prefix=/usr/local/nagios --with-nagios-user=nagios --with-nagios-group=nagios --with-command-user=nagios --with-command-group=nagcmd
+        - make nagios
+        - make workers
+        - make modules
+        - make cgis
+        - make contrib
+        - checkinstall
+
+    - name: Configure nagios
+      command: "{{item}} chdir=nagios-{{ nagios_version }}"
+      sudo: true
+      with_items:
+        - /usr/bin/install -c -m 644 sample-config/httpd.conf /etc/apache2/sites-available/nagios.conf
+        - ln -s /usr/local/nagios-4.0.7 /usr/local/nagios
+        - a2ensite nagios
+        - service apache2 reload
+        - service apache2 restart
