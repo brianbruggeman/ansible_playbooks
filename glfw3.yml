@@ -1,0 +1,52 @@
+- name: Installing GLFW3
+  hosts: all
+  gather_facts: yes
+
+  vars:
+    - glfw_version: "{{ ansible_env.TMUX_VERSION | default('3.1.2') }}"
+
+  tasks:
+    - name: Prepare system
+      command: "{{item}}"
+      sudo: true
+      with_items:
+        - apt-get install -qq cmake
+        - apt-get install -qq g++-4.8
+        - apt-get install -qq gcc-4.8
+        - apt-get install -qq libglew-dev
+        - apt-get install -qq libfreetype6-dev
+        - apt-get install -qq libxrandr-dev
+        - apt-get install -qq libxrandr-dev
+        - apt-get install -qq libxinerama-dev
+        - apt-get install -qq libxcursor-dev
+        - apt-get install -qq freeglut3-dev
+        - apt-get install -qq libxxf86vm-dev
+        - apt-get install -qq libglu1-mesa-dev
+        - apt-get install -qq libjpeg8-dev
+
+    - name: Download and unpack glfw source
+      command: "{{item}}"
+      sudo: true
+      with_items:
+        - wget -O glfw-3.1.2.zip https://github.com/glfw/glfw/releases/download/3.1.2/glfw-3.1.2.zip
+        - unzip glfw-3.1.2.zip
+
+    - name: Build glfw package
+      command: "{{item}} chdir=glfw-{{ glfw_version }}"
+      sudo: true
+      with_items:
+        - cmake -DBUILD_SHARED_LIBS=ON -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF -DCMAKE_INSTALL_PREFIX=/usr -DLIB_SUFFIX=/x86_64-linux-gnu
+        - make
+
+    - name: Install glfw
+      command: "{{item}} chdir=glfw-{{ glfw_version }}"
+      sudo: true
+      with_items:
+        - make install
+
+    - name: Post-install configuration
+      command: "{{item}}"
+      sudo: true
+      with_items:
+        - "export DISPLAY=:99.0"
+        - "sh -e /etc/init.d/xvfb start"
