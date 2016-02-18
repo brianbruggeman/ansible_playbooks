@@ -7,22 +7,21 @@
 
   tasks:
     - name: Prepare system
-      command: "{{item}}"
-      sudo: true
+      apt: "name={{item}} update_cache=yes state=present"
       with_items:
-        - apt-get install -qq cmake
-        - apt-get install -qq g++-4.8
-        - apt-get install -qq gcc-4.8
-        - apt-get install -qq libglew-dev
-        - apt-get install -qq libfreetype6-dev
-        - apt-get install -qq libxrandr-dev
-        - apt-get install -qq libxrandr-dev
-        - apt-get install -qq libxinerama-dev
-        - apt-get install -qq libxcursor-dev
-        - apt-get install -qq freeglut3-dev
-        - apt-get install -qq libxxf86vm-dev
-        - apt-get install -qq libglu1-mesa-dev
-        - apt-get install -qq libjpeg8-dev
+        - cmake
+        - freeglut3-dev
+        - g++-4.8
+        - gcc-4.8
+        - libfreetype6-dev
+        - libglew-dev
+        - libglu1-mesa-dev
+        - libjpeg8-dev
+        - libxcursor-dev
+        - libxinerama-dev
+        - libxrandr-dev
+        - libxrandr-dev
+        - libxxf86vm-dev
 
     - name: Download and unpack glfw source
       command: "{{item}}"
