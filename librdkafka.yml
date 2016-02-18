@@ -1,0 +1,24 @@
+- name: Installing librdkafka
+  hosts: all
+  gather_facts: yes
+
+  vars:
+    - librdkafka_version: "{{ ansible_env.TMUX_VERSION | default('0.8.6') }}"
+
+  tasks:
+    - name: Download librdkafka package
+      command: "{{item}}"
+      with_items:
+        - "wget -O librdkafka-{{ librdkafka_version }}.tar.gz 'https://github.com/edenhill/librdkafka/archive/{{ librdkafka_version }}.tar.gz'"
+        - "tar -xzf librdkafka-{{ librdkafka_version }}.tar.gz"
+
+    - name: Install librdkafka
+      command: "{{item}} chdir=librdkafka-{{ librdkafka_version }}"
+      sudo: true
+      with_items:
+        - ./configure
+        - make
+        - make install
+        - make clean
+        - ./configure --clean
+
